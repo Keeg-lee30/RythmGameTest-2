@@ -2,11 +2,12 @@ import pygame
 import random
 import os
 from os import path
+import sys
 
 img_dir = path.join(path.dirname(__file__), 'img')
 snd_dir = path.join(path.dirname(__file__), 'snd')
 
-WIDTH = 700
+WIDTH = 600
 HEIGHT = 400
 FPS = 60
 
@@ -17,17 +18,19 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 
+player_shield = 100
+
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Rhythm")
 
 clock = pygame.time.Clock()
-spawns = (100, 150, 250, 300)
+spawns = (HEIGHT * .375, HEIGHT / 2, HEIGHT * .625, HEIGHT * .75)
 
-bkgr_image = pygame.image.load(os.path.join(img_dir, "background.jpg")).convert()
+"""bkgr_image = pygame.image.load(os.path.join(img_dir, "background.jpg")).convert()
 background = pygame.transform.scale(bkgr_image, (WIDTH, HEIGHT))
-background_rect = background.get_rect()
+background_rect = background.get_rect()"""
 
 font_name = pygame.font.match_font('arial')
 def draw_text(surf, text, size, x, y):
@@ -54,11 +57,10 @@ def draw_shield_bar(surf, x, y, pct):
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
 def show_start_screen():
-
     screen.fill(WHITE)
-    draw_text(screen, "Rhythm!", 64, WIDTH / 2, HEIGHT / 4)
-    draw_text(screen, "Press the matching arrow key when the arrows hit the line", 22, WIDTH / 2, HEIGHT / 2)
-    draw_text(screen, "Press a key to begin...", 18, WIDTH / 2, HEIGHT * 3 / 4)
+    draw_text(screen, "Rhythm", 64, WIDTH / 2, HEIGHT / 4)
+    draw_text(screen, "Press the matching arrow keys don't let them pass the line", 22, WIDTH / 2, HEIGHT / 2)
+    draw_text(screen, "Press a key to start...", 18, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
 
     waiting = True
@@ -69,25 +71,137 @@ def show_start_screen():
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.KEYUP:
-                print("Key pressed to start game!")
+                draw_text(screen, "Key pressed to start game!", 18, WIDTH / 2, HEIGHT * 3 / 4)
+                waiting = False
+                
+def show_Game_Over_screen():
+    screen.fill(WHITE)
+    draw_text(screen, "Game Over", 64, WIDTH / 2, HEIGHT / 4)
+    draw_text(screen, "Press a key to restart...", 18, WIDTH / 2, HEIGHT * 3 / 4)
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        clock.tick(FPS)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
                 waiting = False
 
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-       pygame.sprite.Sprite.__init__(self)
-       self.image = pygame.Surface((5, 400))
-       self.image.fill(BLACK)
-       self.shield = 100
-       self.rect = self.image.get_rect()
-       self.rect.center = (WIDTH / 5, HEIGHT / 2)
 
-class notehits(pygame.sprite.Sprite):
+class Notehits1(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.center = (WIDTH / 5, HEIGHT / 4)
+        self.shoot_delay = 50
+        self.last_shot = pygame.time.get_ticks()
+        self.power = 1
+
+    def update(self):
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_UP]:
+            self.shoot()
+
+    def shoot(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_shot > self.shoot_delay:
+            self.last_shot = now
+            if self.power == 1:
+                bullet = Bullet(self.rect.centerx, self.rect.centery)
+                all_sprites.add(bullet)
+                bullets.add(bullet)
+
+class Notehits2(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.center = (WIDTH / 5, HEIGHT * .375)
+        self.speedx = 0
+        self.shoot_delay = 50
+        self.last_shot = pygame.time.get_ticks()
+        self.power = 1
+
+    def update(self):
+        self.speedx = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_RIGHT]:
+            self.shoot()
+
+    def shoot(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_shot > self.shoot_delay:
+            self.last_shot = now
+            if self.power == 1:
+                bullet = Bullet(self.rect.centerx, self.rect.centery)
+                all_sprites.add(bullet)
+                bullets.add(bullet)
+
+class Notehits3(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.center = (WIDTH / 5, HEIGHT / 2)
+        self.speedx = 0
+        self.shoot_delay = 50
+        self.last_shot = pygame.time.get_ticks()
+        self.power = 1
+
+    def update(self):
+        self.speedx = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_DOWN]:
+            self.shoot()
+
+    def shoot(self):
+         bullet = Bullet(self.rect.centerx, self.rect.centery)
+         all_sprites.add(bullet)
+         bullets.add(bullet)
+
+class Notehits4(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.center = (WIDTH / 5, HEIGHT * .75)
+        self.speedx = 0
+        self.shoot_delay = 50
+        self.last_shot = pygame.time.get_ticks()
+        self.power = 1
+
+    def update(self):
+        self.speedx = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_LEFT]:
+            self.shoot()
+
+    def shoot(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_shot > self.shoot_delay:
+            self.last_shot = now
+            if self.power == 1:
+                bullet = Bullet(self.rect.centerx, self.rect.centery)
+                all_sprites.add(bullet)
+                bullets.add(bullet)
+
+class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-
+        self.image = pygame.Surface((30, 30))
+        self.image.fill(BLACK)
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
+        self.speedy = 0
 
     def update(self):
         self.rect.y += self.speedy
@@ -100,42 +214,32 @@ class notehits(pygame.sprite.Sprite):
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image_orig = random.choice(notes_images)
-        self.image_orig.set_colorkey(BLACK)
-        self.image = self.image_orig.copy()
-        self.image = pygame.transform.scale(self.image, (115, 115))
+        #self.image = random.choice(notes_images)
+        #self.image.set_colorkey(BLACK)
+        #self.image = self.image_copy()
+        #self.image = pygame.transform.scale(self.image, (100, 100))
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLACK)
         self.rect = self.image.get_rect()
         self.rect.y = random.choice(spawns)
         self.rect.x = WIDTH
         self.speedx = random.randrange(-8, -1)
-            
+
     def update(self):
         self.rect.x += self.speedx
-        if self.rect.left < -25:
+        """if self.rect.y == 100:
+            self.image = ('note_1.png')
+        elif self.rect.y == 150:
+            self.image = ('note_2.png')
+        elif self.rect.y == 250:
+            self.image = ('note_3.png')
+        elif self.rect.y == 300:
+            self.image = ('note_4.png')"""
+        if self.rect.left < 0:
             self.rect.x = WIDTH
             self.rect.y = random.choice(spawns)
             self.speedx = random.randrange(-8, -1)
-            player.shield -= 25
-
-class HealthBar(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-
-        self.healthbar_count = 0
-
-        self.rect = self.image.get_rect()
-        self.rect.x = 10
-        self.rect.y = 10
-        
-    def setHealth(self, health):
-        if health == 1:
-            self.healthbar_count += 1
-            if self.healthbar_count < 0:
-                self.healthbar_count = 0
-        elif health == -1:
-            self.healthbar_count -= 1
-            if self.healthbar_count > 5:
-                self.healthbar_count = 5
+            #self.image = random.choice(notes_images)
 
 notes_images = []
 notes_list = ['note_1.png','note_2.png','note_3.png','note_4.png']
@@ -145,9 +249,16 @@ for img in notes_list:
 
 all_sprites = pygame.sprite.Group()
 mobs = pygame.sprite.Group()
-player = Player()
-all_sprites.add(player)
-for i in range(1):
+bullets = pygame.sprite.Group()
+notehits1 = Notehits1()
+notehits2 = Notehits2()
+notehits3 = Notehits3()
+notehits4 = Notehits4()
+all_sprites.add(notehits1)
+all_sprites.add(notehits2)
+all_sprites.add(notehits3)
+all_sprites.add(notehits4)
+for i in range(8):
     newmob()
     
 score = 0
@@ -160,21 +271,28 @@ while running:
         show_start_screen()
         start = False
 
+
     clock.tick(FPS)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             
-    hits = pygame.sprite.groupcollide(mobs, notehits, True, True)
+    if player_shield <= 0:
+        show_Game_Over_screen()
+        start = False
+
+    hits = pygame.sprite.groupcollide(mobs, bullets, True, True)
     for hit in hits:
         score += 100
-
+        newmob()
+        
     all_sprites.update()
-    screen.blit(background, background_rect)
+    screen.fill(WHITE)
+    #screen.blit(background, background_rect)
     all_sprites.draw(screen)
-
-    draw_shield_bar(screen, 5, 5, player.shield)
+    #draw_text(screen, str(score), 18, WIDTH / 2, 10)
+    #draw_shield_bar(screen, 5, 5, player.shield)
     pygame.display.flip()
 
 pygame.quit()
